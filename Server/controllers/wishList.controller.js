@@ -107,6 +107,24 @@ const isProductInWishlist = asyncHandler(async (req, res) => {
         );
 });
 
+const getWishlistProductDetails = asyncHandler(async (req, res) => {
+    // Retrieve the user's wishlist
+    const userWishlist = await Wishlist.findOne({ user: req.user._id }).populate('products')
+    if (!userWishlist) {
+        throw new ApiError(404, 'Wishlist not found');
+    }
 
+    // Extract the products from the wishlist
+    const wishlistProducts = userWishlist.products;
 
-export { addToWishlist, removeFromWishlist, getWishlistProducts, isProductInWishlist }
+    return res.status(200)
+        .json(
+            new ApiResponse(
+                200,
+                wishlistProducts,
+                'Wishlist products retrieved successfully'
+            )
+        );
+});
+
+export { addToWishlist, removeFromWishlist, getWishlistProducts, isProductInWishlist, getWishlistProductDetails }

@@ -3,7 +3,8 @@ import { User } from "../models/users/users.model.js";
 import { ApiError } from "../utils/apiError.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
-
+import  {Strategy as GoogleStrategy}  from 'passport-google-oauth20';
+import passport from 'passport'
 
 const generateAccessTokenAndRefreshToken = async (userId) => {
     try {

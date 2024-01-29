@@ -7,15 +7,18 @@ import { Link, Outlet, NavLink } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { setUser,logout } from '../store/userslice';  
 import {setTotalItems} from '../store/wishlist';
+import {setCartTotalItems} from "../store/cartSlice";
 import useCustomApi from '../hooks/ApiHook';
 // import { useDispatch, useSelector } from 'react-redux';
 // import { setUser,logout } from '../store/userslice';
 function Header() {
   const { currentUser, isAuthenticated } = useSelector(state => state.user);
   const { totalItems } = useSelector(state => state.wishlist);
+  const carTotalItem = useSelector(state => state.cart.totalItems);
   const dispatch = useDispatch();
   const { data, error, loading, customFetchData } = useCustomApi();
   const { data:wishlistdata, error:wishlisterror, loading:wishlistloading, customFetchData:wishlistcustomFetchData } = useCustomApi();
+  const { data:cartdata, error:carterror, loading:cartloading, customFetchData:cartcustomFetchData } = useCustomApi();
 
   const [showmenu, setShowmenu] = useState(false)
   function handlechangeMenu() {
@@ -25,6 +28,7 @@ function Header() {
     if(data?.statusCode == 200){
       dispatch(logout())
       dispatch(setTotalItems(0))
+      dispatch(setCartTotalItems(0))
     }
   }, [data, error]);
   function handleLoutout(event) {
@@ -114,7 +118,7 @@ function Header() {
               <li className='mx-1 relative font-light'>
                 <Link to="/checkout"><IoBagOutline size={20} /></Link>
 
-                <p className='absolute text-xs top-[-8px] text-white bg-black rounded-full px-1 right-0'>{totalItems}</p>
+                <p className='absolute text-xs top-[-8px] text-white bg-black rounded-full px-1 right-0'>{carTotalItem}</p>
 
               </li>
             </ul>

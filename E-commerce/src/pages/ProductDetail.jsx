@@ -3,29 +3,52 @@ import useCustomApi from '../hooks/ApiHook'
 import { useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { setTotalItems } from '../store/wishlist';
-
+import {setCartTotalItems} from '../store/cartSlice';
 
 function ProductDetail() {
   let { totalItems } = useSelector(state => state.wishlist);
   const dispatch = useDispatch();
   const { id } = useParams();
+  const [quantity, setQuantity] = useState(1);
   const [isWishList, setIsWishList] = useState(false);
+  const [isInCart, setIsInCart] = useState(false);
   const [productDetails, setProductDetails] = useState({})
   const { data, error, loading, customFetchData } = useCustomApi();
   const { data: wishlistdata, error: wishlisterror, loading: wishlistloading, customFetchData: wishlistcustomFetchData } = useCustomApi();
   const { data: checkWishlistdata, error: checkWishlisterror, loading: checkWishlistloading, customFetchData: checkWishlistcustomFetchData } = useCustomApi();
+  const { data: isInCartdata, error: isInCarterror, loading: isInCartloading, customFetchData: isInCartcustomFetchData } = useCustomApi();
+  const { data: Cartdata, error: Carterror, loading: Cartloading, customFetchData: CartcustomFetchData } = useCustomApi();
+  
 
   useEffect(() => {
 
     console.log(`products/getoneproduct/${id}`);
     customFetchData(`/products/getoneproduct/${id}`, "GET", null, {}, "application/json");
     checkWishlistcustomFetchData(`/wishtlist/isproductinwishlist/${id}`, "GET", null, {}, "application/json");
-
+    isInCartcustomFetchData(`/cart/isproductcart/${id}`, "GET", null, {}, "application/json")
   }, [])
   useEffect(() => {
     setIsWishList(checkWishlistdata?.data?.
-      isInWishlist)
+      isInWishlist) 
   }, [checkWishlistdata])
+useEffect(() => {
+  isInCartcustomFetchData(`/cart/isproductcart/${id}`, "GET", null, {}, "application/json")
+  if(Cartdata && Cartdata?.data?.updatedCart?.products ){
+   
+    dispatch (setCartTotalItems(Cartdata?.data?.updatedCart?.products.length))
+
+  }
+// console.log("dfakjllff",Cartdata );
+} , [Cartdata])
+  useEffect(() => {
+    // console.log("****************",isInCartdata?.data);
+    if ( isInCartdata?.data  ) {
+      setIsInCart(true)
+    }
+    else{
+      setIsInCart(false)
+    }
+  }, [isInCartdata, Cartdata])
   useEffect(() => {
     setProductDetails(data?.data)
   }, [data])
@@ -37,23 +60,52 @@ function ProductDetail() {
   async function addToWishList(productId) {
     if (!isWishList) {
 
-       wishlistcustomFetchData("/wishtlist/addtowishlist", "POST", null, { productId }, "application/json")
-     
-        setIsWishList(true)
-     
-      
-      
+      wishlistcustomFetchData("/wishtlist/addtowishlist", "POST", null, { productId }, "application/json")
+
+      setIsWishList(true)
+
+
+
     }
     else {
       wishlistcustomFetchData("/wishtlist/removefromwishlist", "POST", null, { productId }, "application/json")
       setIsWishList(false)
-      
-      
+
+
 
     }
-    console.log(wishlistdata);
+    // console.log(wishlistdata);
   }
+  async function handleCart() {
+    if (!isInCart) {
+     
+
+       CartcustomFetchData(`/cart/update`, "PUT", null, {
+          productId: id,
+          quantity
   
+        }, "application/json")
+    
+    }
+    else {
+      CartcustomFetchData(`/cart/delete`, "DELETE", null, {
+        productId: id
+
+
+      }, "application/json")
+    }
+  }
+  function handleQuantity(e) {
+    if(e.target.value < 1){
+      setQuantity(1)
+    }
+    else{
+
+      setQuantity(e.target.value)
+    }
+    setIsInCart(false)
+    // console.log(quantity);
+  }
 
   return (
     <div>
@@ -101,9 +153,9 @@ function ProductDetail() {
             <div class="w-full px-4  ">
               <div class="lg:pl-20">
                 <div class="mb-8 ">
-                  <span class="text-lg font-medium text-rose-500 dark:text-rose-200">New</span>
+                  <span class="text-lg font-medium text-rose-500 dark:text-rose-200">{productDetails?.productType}</span>
                   <h2 class="max-w-xl mt-2 mb-6 text-2xl font-bold dark:text-gray-400 md:text-4xl">
-                    Shoes</h2>
+                    {productDetails?.productName}</h2>
                   <div class="flex items-center mb-6">
                     <ul class="flex mr-2">
                       <li>
@@ -209,7 +261,9 @@ function ProductDetail() {
                     </button>
                     <input type="number"
                       class="flex items-center w-full font-semibold text-center text-gray-700 placeholder-gray-700 bg-gray-300 outline-none dark:text-gray-400 dark:placeholder-gray-400 dark:bg-gray-900 focus:outline-none text-md hover:text-black"
-                      placeholder="1" />
+                      value={quantity}
+                      onChange={() => handleQuantity(event)}
+                      placeholder="1"    />
                     <button
                       class="w-20 h-full text-gray-600 bg-gray-300 rounded-r outline-none cursor-pointer dark:hover:bg-gray-700 dark:text-gray-400 dark:bg-gray-900 hover:text-gray-700 hover:bg-gray-400">
                       <span class="m-auto text-2xl font-thin">+</span>
@@ -219,8 +273,9 @@ function ProductDetail() {
                 <div class="flex md:flex-row flex-col   items-center -mx-4 ">
                   <div class="w-full px-4 mb-4  lg:mb-0">
                     <button
-                      class="flex items-center justify-center w-full p-4 text-blue-500 border border-blue-500 rounded-md dark:text-gray-200 dark:border-blue-600 hover:bg-blue-600 hover:border-blue-600 hover:text-gray-100 dark:bg-blue-600 dark:hover:bg-blue-700 dark:hover:border-blue-700 dark:hover:text-gray-300">
-                      Add to Cart
+                      class="flex items-center justify-center w-full p-4 text-blue-500 border border-blue-500 rounded-md dark:text-gray-200 dark:border-blue-600 hover:bg-blue-600 hover:border-blue-600 hover:text-gray-100 dark:bg-blue-600 dark:hover:bg-blue-700 dark:hover:border-blue-700 dark:hover:text-gray-300"
+                      onClick={() => handleCart()} >
+                      {isInCart ? "Remove from cart" : "Add to Cart "}
                     </button>
                   </div>
                   <div class="w-full px-4 mb-4 lg:mb-0  ">

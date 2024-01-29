@@ -5,8 +5,10 @@ import { useDispatch, useSelector } from 'react-redux';
 import { setUser } from '../store/userslice';
 import Loader from '../components/Loader';
 import { setTotalItems } from '../store/wishlist';
+import { setCartTotalItems } from '../store/cartSlice';
 const Login = () => {
   let { data: wishlistdata, error: wishlisterror, loading: wishlistloading, customFetchData: wishlistcustomFetchData } = useCustomApi();
+  const { data:cartdata, error:carterror, loading:cartloading, customFetchData:cartcustomFetchData } = useCustomApi();
 
   const { currentUserdata, isAuthenticated } = useSelector(state => state.user);
   const dispatch = useDispatch();
@@ -17,6 +19,9 @@ const Login = () => {
     password: "",
     email: ""
   });
+  function handlegoogleLogin(){
+    window.open("http://localhost:4000/api/v1/users/login/google", "_self");
+  }
 
   useEffect(() => {
     if (data) {
@@ -46,6 +51,8 @@ const Login = () => {
       customFetchData("/users/login", "POST", null, loginDetail, "application/json")
       .then(() => {
       wishlistcustomFetchData("/wishtlist/getwishlist", "POST", null, {}, "application/json")
+      }).then(() => {
+        cartcustomFetchData("/cart/carts", "GET", null, {}, "application/json")
       })
      
     ])
@@ -56,9 +63,18 @@ const Login = () => {
     if (wishlistdata?.data) {
       console.log("API response new :", wishlistdata?.data);
       dispatch(setTotalItems(wishlistdata?.data?.length));
+      
       // Handle the data as needed, for example, setYourStateVariable(data);
     }
   }, [wishlistdata])
+  useEffect(() => {
+    if (cartdata?.data?.cart) {
+      console.log("API response new :", cartdata?.data?.cart?.products);
+      dispatch(setCartTotalItems(cartdata?.data?.cart?.products?.length));
+      
+      // Handle the data as needed, for example, setYourStateVariable(data);
+    }
+  }, [cartdata])
 
   return (
     <div className="flex  flex-col justify-center px-6 py-12 lg:px-8 relative min-h-screen min-w-screen">
@@ -114,7 +130,17 @@ const Login = () => {
               type="submit"
               className="flex w-full justify-center rounded-md px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm bg-orange-600"
             >
-              Sign in
+              Log in
+            </button>
+          </div>
+
+          <div className='bg-orange-500 rounded-md hover:bg-orange-600'>
+            <button
+              onClick={handlegoogleLogin}
+              type="submit"
+              className="flex w-full justify-center rounded-md px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm bg-orange-600"
+            >
+              Sign in with Google
             </button>
           </div>
         </form>
