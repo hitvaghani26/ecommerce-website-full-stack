@@ -17,6 +17,7 @@ const useCustomApi = () => {
             console.log("res is :------",res?.data);
         } catch (error) {
             setError(error);
+            console.log("error is :",error.response?.status);
         } finally {
             setLoading(false);
         }

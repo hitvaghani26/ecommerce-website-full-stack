@@ -39,7 +39,7 @@ function Header() {
 
   return (
     <>
-    <div className='sticky top-0 z-50'>
+    <div className='sticky top-0 z-50 '>
 
       <div className='header relative bg-white'>
         <div className='flex justify-between items-center py-2 font-Montserrat px-4' >

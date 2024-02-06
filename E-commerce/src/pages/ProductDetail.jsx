@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react'
 import useCustomApi from '../hooks/ApiHook'
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { setTotalItems } from '../store/wishlist';
 import {setCartTotalItems} from '../store/cartSlice';
 
 function ProductDetail() {
   let { totalItems } = useSelector(state => state.wishlist);
+  const { currentUser, isAuthenticated } = useSelector(state => state.user);
+const navigate = useNavigate();
   const dispatch = useDispatch();
   const { id } = useParams();
   const [quantity, setQuantity] = useState(1);
@@ -58,6 +60,9 @@ useEffect(() => {
     }
   }, [wishlistdata])
   async function addToWishList(productId) {
+    if(!isAuthenticated){
+      navigate("/login")
+    }
     if (!isWishList) {
 
       wishlistcustomFetchData("/wishtlist/addtowishlist", "POST", null, { productId }, "application/json")
@@ -77,6 +82,9 @@ useEffect(() => {
     // console.log(wishlistdata);
   }
   async function handleCart() {
+    if(!isAuthenticated){
+      navigate("/login")
+    }
     if (!isInCart) {
      
 
